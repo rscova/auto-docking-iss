@@ -28,7 +28,7 @@ executing @ file:///opt/conda/conda-bld/executing_1646925071911/work
 fastapi==0.103.0
 fastjsonschema @ file:///opt/conda/conda-bld/python-fastjsonschema_1661371079312/work
 filelock==3.15.4
-Flask==1.1.2
+Flask==2.1.0
 Flask-SocketIO==5.3.5
 flaskwebgui==1.0.6
 fonttools==4.53.1
@@ -54,7 +54,7 @@ keyboard==0.13.5
 kiwisolver==1.4.5
 lark==1.1.8
 lit==18.1.8
-MarkupSafe @ file:///home/builder/ci_310/markupsafe_1640791577099/work
+MarkupSafe==2.1.5
 matplotlib==3.9.1
 matplotlib-inline @ file:///opt/conda/conda-bld/matplotlib-inline_1662014470464/work
 mistune==3.0.2
@@ -154,7 +154,7 @@ uvicorn==0.23.2
 wcwidth @ file:///Users/ktietz/demo/mc3/conda-bld/wcwidth_1629357192024/work
 webencodings==0.5.1
 websocket-client @ file:///home/builder/ci_310/websocket-client_1640795866898/work
-Werkzeug==1.0.1
+Werkzeug==2.2.2
 xacro==1.13.3
 xmltodict==0.13.0
 yarg==0.1.9
