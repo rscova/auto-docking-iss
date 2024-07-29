@@ -32,7 +32,7 @@ class Env:
 
         self.dt = 0.01
 
-        self.max_steps = 10000
+        self.max_steps = 3000
         self.current_steps = 0
 
         self.max_state = [0,0,0,0,0,0]
@@ -98,7 +98,7 @@ class Env:
             self.socketio.emit('datos_hacia_cliente',[1])
 
     def run_flask_server(self):
-        self.socketio.run(self.app, debug=True, host="0.0.0.0", port=5000, use_reloader=False)
+        self.socketio.run(self.app, debug=True, host="127.0.0.1", port=5000, use_reloader=False,allow_unsafe_werkzeug=True)
         self.stop_event.set()  # Set the event when Flask exits
 
     def run(self):
