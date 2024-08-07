@@ -17,13 +17,12 @@ class Env:
 
         self.reset_cmd = 0
         self.max_episode_time_seconds = 200
-        # self.episode_init_time = time.time()
 
-        self.sim_data = [0.0,0.0,0.0]#[0.0,0.0,0.0,0.0,0.0,0.0]
-        self.sim_past_data = [0.0,0.0,0.0]#[0.0,0.0,0.0,0.0,0.0,0.0]
+        self.sim_data = [0.0,0.0,0.0]
+        self.sim_past_data = [0.0,0.0,0.0]
 
-        self.state_curr = [0.0,0.0,0.0]#[0.0,0.0,0.0,0.0,0.0,0.0]
-        self.state_past = [0.0,0.0,0.0]#[0.0,0.0,0.0,0.0,0.0,0.0]
+        self.state_curr = [0.0,0.0,0.0]
+        self.state_past = [0.0,0.0,0.0]
 
         self.stopped = False
         self.new_action = False
@@ -32,12 +31,12 @@ class Env:
 
         self.dt = 0.01
 
-        self.max_steps = 3000
-        self.current_steps = 0
-
         self.max_state = [0,0,0,0,0,0]
 
         self.derivative_timer = time.time()
+
+        self.actions = [0,0,0,0,0,0]
+        self.actions_counts = [0,0,0]
 
     def configure_routes(self):
         @self.app.route('/')
@@ -54,24 +53,11 @@ class Env:
         @self.socketio.on('error_data')
         def error_data(data):
             self.sim_past_data = self.sim_data
-            # print(data[-1])
-            # if float(data[-1]) != 0.0:
-            #     self.dt = float(data[-1]*1e-3)
-
-            # data = data[:-1]
             self.sim_data = [float(value) for value in data]
-            # print(self.sim_data)
-
-            # self.stopped = self.is_stopped()
-
-            # timeout = (time.time() - self.episode_init_time) >= self.max_episode_time_seconds
 
             if (self.reset_cmd):
-                # print("Timeout or reset" ,self.reset_cmd, " ",self.sim_data[0])
                 self.socketio.emit('datos_hacia_cliente', [0,0,0,0,0,0,1]) # 0 actions, (1) Reset
-                # self.episode_init_time = time.time()
                 self.new_action = False
-                # self.done = -1
                 self.reset_cmd = 0
             elif (self.stopped == False): #Continue while not stopped
                 self.socketio.emit('datos_hacia_cliente', [0,0,0,0,0,0,0])
@@ -86,14 +72,7 @@ class Env:
     def done_data_socket(self):
         @self.socketio.on('done_data')
         def done_data(done):
-            # print ("Received done")
-            # print(done)
-            if (self.current_steps <= self.max_steps):
-                self.done = done[0]
-                self.reward = float(done[1])
-            else:
-                self.done = -1
-                self.reward = -3000.0
+            self.done = done[0]
 
             self.socketio.emit('datos_hacia_cliente',[1])
 
@@ -108,30 +87,32 @@ class Env:
         thread = threading.Thread(target=self.run_flask_server) 
         thread.daemon = True
         thread.start()
-
-        # self.stop_event.wait()
-        # self.reset()
     
-    def compute_reward(self,state):
+    def compute_reward(self):
         reward = 0.0
 
-        for i in range(len(self.state_curr)):
-            if abs(self.state_curr[i]) - abs(self.state_past[i]) > 0:
-                reward -= 1
-            elif abs(self.state_curr[i]) - abs(self.state_past[i]) < 0:
-                reward += 0.33
-    
-        reward += self.reward
-        # if self.done == -1:
-        #     reward = self.reward - math.sqrt(sum([state[0]**2,state[1]**2,state[2]**2]))
-        #     print(self.reward,reward)
-        
-        # elif self.done == 1:
-        #     reward = self.reward
-        #     print(self.reward,reward)
-        # else:
-        #     reward =  -math.sqrt(sum([state[0]**2,state[1]**2,state[2]**2])) / 40
+        # X reward
+        if abs(self.state_curr[0]) - abs(self.state_past[0]) > 0:
+            reward -= 0.2
+        elif abs(self.state_curr[0]) - abs(self.state_past[0]) < 0:
+            reward += 0.1
 
+        # Y reward
+        if abs(self.state_curr[1]) - abs(self.state_past[1]) > 0:
+            reward -= 0.4
+        elif abs(self.state_curr[1]) - abs(self.state_past[1]) < 0:
+            reward += 0.3
+        elif abs(self.state_curr[1]) - abs(self.state_past[1]) == 0:
+            reward += 0.05
+
+        # Z reward
+        if abs(self.state_curr[2]) - abs(self.state_past[2]) > 0:
+            reward -= 0.4
+        elif abs(self.state_curr[2]) - abs(self.state_past[2]) < 0:
+            reward += 0.3
+        elif abs(self.state_curr[2]) - abs(self.state_past[2]) == 0:
+            reward += 0.05
+    
         return reward
 
     def wait_until_stopped(self,sleep_time = 0.1):
@@ -142,9 +123,8 @@ class Env:
             else: 
                 count = 0
             time.sleep(sleep_time)
-            
         
-        print("Stopped")
+        # print("Stopped")
         self.stopped = True
         return True
     
@@ -159,16 +139,13 @@ class Env:
         self.derivative_timer = time.time() - 1
         self.state_curr = self.sim_data.copy()
         self.state_past = self.state_curr.copy()
-        # self.episode_init_time = time.time()
         self.new_action = False
-        self.current_steps = 0
+        self.actions_counts = [0,0,0]
         return self.get_state().copy()
     
     def get_state(self):
         self.state_past = self.state_curr.copy()
         self.state_curr = self.sim_data.copy()
-
-        # print(self.sim_data,self.sim_past_data)
 
         state = self.state_curr.copy()
         curr_time = time.time()
@@ -181,20 +158,53 @@ class Env:
         return state
 
     def step(self,action:int):
-        self.current_steps += 1
+        self.new_action = False
 
         self.actions = [0,0,0,0,0,0]
         if action < 6:
             self.actions[action] = 1
-        self.new_action = True
+
+
+        if action == 0:
+            self.actions_counts[0] += 1
+            if self.actions_counts[0] <= 2:
+                self.new_action = True
+            else:
+                self.actions_counts[0] = 2
+        elif action == 1:
+            self.actions_counts[0] -= 1
+            if self.actions_counts[0] >= -2:
+                self.new_action = True
+            else:
+                self.actions_counts[0] = -2
+        elif action == 2:
+            self.actions_counts[1] += 1
+            if self.actions_counts[1] <= 2:
+                self.new_action = True
+            else:
+                self.actions_counts[1] = 2
+        elif action == 3:
+            self.actions_counts[1] -= 1
+            if self.actions_counts[1] >= -2:
+                self.new_action = True
+            else:
+                self.actions_counts[1] = -2
+        elif action == 4:
+            self.actions_counts[2] += 1
+            if self.actions_counts[2] <= 2:
+                self.new_action = True
+            else:
+                self.actions_counts[2] = 2
+        elif action == 5:
+            self.actions_counts[2] -= 1
+            if self.actions_counts[2] >= -2:
+                self.new_action = True
+            else:
+                self.actions_counts[2] = -2
 
         state = self.get_state()
         reward = self.compute_reward(state)
-        # print(state)
-        # for i in range(6):
-        #     if abs(state[i]) > abs(self.max_state[i]):
-        #         self.max_state[i] = state[i]
-        #         print(self.max_state)
+
         return state, reward, self.done
     
     def close(self):

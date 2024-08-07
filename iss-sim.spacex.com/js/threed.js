@@ -1499,17 +1499,17 @@ function checkCollision() {
             ((hitDistance = 0.5 < e ? 1 : 0.1),
             (hitRaycaster.far = hitDistance),
             0.02 <= i || 0.02 <= n || 0.02 <= s ? updateRateColor("warning") : i > toleranceRate || n > toleranceRate || s > toleranceRate ? updateRateColor("caution") : updateRateColor("normal"),
-            0 < t.length && (($("#fail-message").innerHTML = "You made contact with the International Space Station."), resetPosition(),enviarDone(1,10),console.log("1")),//hideInterface("fail")),
-            40 < e && (($("#fail-message").innerHTML = "You are too far away from the International Space Station."), resetPosition(),enviarDone(-1,-3000),console.log("2")),//hideInterface("fail")),
+            0 < t.length && (($("#fail-message").innerHTML = "You made contact with the International Space Station."), enviarDone(1,10),console.log("1")),//hideInterface("fail")),
+            40 < e && (($("#fail-message").innerHTML = "You are too far away from the International Space Station."), enviarDone(-1,-3000),console.log("2")),//hideInterface("fail")),
             0.2 > e && -150 < camera.position.z)
         )
-            if (o <= toleranceRotation && a <= toleranceRotation && r <= toleranceRotation && i <= toleranceRate && n <= toleranceRate && s <= toleranceRate) resetPosition(), enviarDone(1,1000),console.log("0");//hideInterface("success");
+            if (o <= toleranceRotation && a <= toleranceRotation && r <= toleranceRotation && i <= toleranceRate && n <= toleranceRate && s <= toleranceRate) enviarDone(1,1000),console.log("0");//hideInterface("success");
             else {
                 var l = "";
                 (o > toleranceRotation || a > toleranceRotation || r > toleranceRotation) && (l = "ROTATION"),
                     (i > toleranceRate || n > toleranceRate || s > toleranceRate) && ("" != l && (l += ", "), (l += "SPEED")),
                     ($("#fail-message").innerHTML = "The following errors occurred: <span class='red'>" + l + "<span>"),
-                    resetPosition(),enviarDone(-1,-10),console.log("3");//hideInterface("fail");
+                    enviarDone(-1,-10),console.log("3");//hideInterface("fail");
             }
     }
 }
