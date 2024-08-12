@@ -10,7 +10,7 @@ import random
 import math
 
 class Env:
-    def __init__(self):
+    def __init__(self,port=5000):
         self.app = Flask(__name__)
         self.socketio = SocketIO(self.app)
         self.stop_event = Event()
@@ -28,6 +28,9 @@ class Env:
         self.new_action = False
         self.done = 0
         self.reward = 0.0
+
+        self.port = port
+        self.init_dist = 0
 
         self.dt = 0.01
 
@@ -77,7 +80,7 @@ class Env:
             self.socketio.emit('datos_hacia_cliente',[1])
 
     def run_flask_server(self):
-        self.socketio.run(self.app, debug=True, host="127.0.0.1", port=5000, use_reloader=False,allow_unsafe_werkzeug=True)
+        self.socketio.run(self.app, debug=True, host="127.0.0.1", port=self.port, use_reloader=False,allow_unsafe_werkzeug=True)
         self.stop_event.set()  # Set the event when Flask exits
 
     def run(self):
@@ -89,49 +92,11 @@ class Env:
         thread.start()
     
     def compute_reward(self):
-        reward = 0.0
-
-        # Experimento 6:
-        # Y reward
-        if abs(self.state_curr[1]) <= 0.2:
-            reward += 1.0
-        elif abs(self.state_curr[1]) - abs(self.state_past[1]) > 0:
-            reward -= 0.4
-        elif abs(self.state_curr[1]) - abs(self.state_past[1]) < 0:
-            reward += 0.3
-
-        # Z reward
-        if abs(self.state_curr[2]) <= 0.2:
-            reward += 1.0
-        elif abs(self.state_curr[2]) - abs(self.state_past[2]) > 0:
-            reward -= 0.4
-        elif abs(self.state_curr[2]) - abs(self.state_past[2]) < 0:
-            reward += 0.3
-
-
-        # Experimento 5: Va por steps
-        # # X reward
-        # if abs(self.state_curr[0]) - abs(self.state_past[0]) > 0:
-        #     reward -= 0.2
-        # elif abs(self.state_curr[0]) - abs(self.state_past[0]) < 0:
-        #     reward += 0.1
-
-        # # Y reward
-        # if abs(self.state_curr[1]) - abs(self.state_past[1]) > 0:
-        #     reward -= 0.4
-        # elif abs(self.state_curr[1]) - abs(self.state_past[1]) < 0:
-        #     reward += 0.3
-        # elif abs(self.state_curr[1]) - abs(self.state_past[1]) == 0:
-        #     reward += 0.05
-
-        # # Z reward
-        # if abs(self.state_curr[2]) - abs(self.state_past[2]) > 0:
-        #     reward -= 0.4
-        # elif abs(self.state_curr[2]) - abs(self.state_past[2]) < 0:
-        #     reward += 0.3
-        # elif abs(self.state_curr[2]) - abs(self.state_past[2]) == 0:
-        #     reward += 0.05
+        reward = -math.sqrt((self.state_curr[0]/20)**2+(self.state_curr[1]/2)**2+(self.state_curr[2]/2)**2)#self.init_dist
+        # sqrt((20/40)**2 + (2/2.83)**2 + (2/2.83)**2)
+        # Experimento 7:
     
+
         return reward
 
     def wait_until_stopped(self,sleep_time = 0.1):
@@ -156,10 +121,11 @@ class Env:
         print("Reset")
         self.wait_until_stopped()
         self.derivative_timer = time.time() - 1
-        self.state_curr = self.sim_data.copy()
-        self.state_past = self.state_curr.copy()
         self.new_action = False
         self.actions_counts = [0,0,0]
+        state = self.get_state().copy()
+        # self.init_dist = math.sqrt(self.state_curr[0]**2+self.state_curr[1]**2+self.state_curr[2]**2)
+
         return self.get_state().copy()
     
     def get_state(self):
@@ -198,28 +164,28 @@ class Env:
                 self.actions_counts[0] = -2
         elif action == 2:
             self.actions_counts[1] += 1
-            if self.actions_counts[1] <= 2:
+            if self.actions_counts[1] <= 1:
                 self.new_action = True
             else:
-                self.actions_counts[1] = 2
+                self.actions_counts[1] = 1
         elif action == 3:
             self.actions_counts[1] -= 1
-            if self.actions_counts[1] >= -2:
+            if self.actions_counts[1] >= -1:
                 self.new_action = True
             else:
-                self.actions_counts[1] = -2
+                self.actions_counts[1] = -1
         elif action == 4:
             self.actions_counts[2] += 1
-            if self.actions_counts[2] <= 2:
+            if self.actions_counts[2] <= 1:
                 self.new_action = True
             else:
-                self.actions_counts[2] = 2
+                self.actions_counts[2] = 1
         elif action == 5:
             self.actions_counts[2] -= 1
-            if self.actions_counts[2] >= -2:
+            if self.actions_counts[2] >= -1:
                 self.new_action = True
             else:
-                self.actions_counts[2] = -2
+                self.actions_counts[2] = -1
 
         state = self.get_state()
         reward = self.compute_reward()

@@ -188,7 +188,7 @@ function initExperience() {
     document.addEventListener("mousedown", onDocumentMouseDown, !1),
         document.addEventListener("mousemove", onDocumentMouseMove, !1),
         document.addEventListener("mouseup", onDocumentMouseUp, !1),
-        initButtons(),
+        // initButtons(),
         renderer.compile(scene, camera),
         (isEventsEnabled = !0),
         hidePreloader(),
@@ -449,7 +449,7 @@ function showInterface() {
             },
             1
         ),
-        interfaceAnimationIn.to(camera.position, 5, { x: Math.random() * 4 - 2, y: Math.random() * 4 - 2, z:  -150 + (Math.random() * 4) + 2, ease: "expo.inOut" }, 2),
+        interfaceAnimationIn.to(camera.position, 5, { x: Math.random() * 4 - 2, y: Math.random() * 4 - 2, z:  -135 + (Math.random() * 5), ease: "expo.inOut" }, 2),
         interfaceAnimationIn.to(camera.rotation, 5, { x: 0, y: 0, z: 0, ease: "expo.inOut" }, 2),
         interfaceAnimationIn.fromTo("#rotation-controls, #translation-controls", 0.5, { autoAlpha: 0 }, { autoAlpha: 1, ease: "none" }, 0),
         interfaceAnimationIn.fromTo("#hud", 1, { autoAlpha: 0 }, { autoAlpha: 1, ease: "none" }, 2),
@@ -524,7 +524,7 @@ function resetPosition() {
     resetMovement(),
         gsap.to(motionVector, 5, { x: 0, y: 0, z: 0, ease: "expo.out" }),
         gsap.to(translationVector, 5, { x: 0, y: 0, z: 0, ease: "expo.out" }),
-        gsap.to(camera.position, 5, { x: Math.random() * 4 - 2, y: Math.random() * 4 - 2, z:  -150 + (Math.random() * 4) + 2, ease: "expo.out" }),
+        gsap.to(camera.position, 5, { x: Math.random() * 4 - 2, y: Math.random() * 4 - 2, z:  -135 + (Math.random() * 5), ease: "expo.out" }),
         gsap.to(camera.rotation, 5, { x: 0, y: 0, z: 0, ease: "expo.out" });
 }
 
@@ -1407,7 +1407,7 @@ function render() {
     //     enviarDone(-1,-1000);
     //     console.log("4");
     // } else {
-    if ((Date.now()-episode_init_time) * 1e-3 > 1) {
+    if ((Date.now()-episode_init_time) * 1e-3 > 10) {
         enviarDone(0,0);
         episode_init_time = Date.now()
     }
@@ -1460,27 +1460,27 @@ function render() {
             send_a = a, send_r = r, send_i = i, send_fixRotZ = fixedRotationZ, send_fixRotX = fixedRotationX, send_fixRotY = fixedRotationY,send_dt = dt;
             enviarMensaje(a,r,i,fixedRotationZ,fixedRotationX,fixedRotationY,dt);
 
-            if (a <= -0.1) {
+            if (a < 0.0) {
                 enviarDone(-1,10);
                 console.log("5");
             }
 
         } else (camera.position.x += 0.01 * (mouseX - camera.position.x)), (camera.position.y += 0.01 * (-mouseY - camera.position.y)), camera.lookAt(scene.position);
-        //renderWormhole(),
-            //renderTunnel(),
-            //renderSonic(),
-            //renderStarfield(),
-            //renderLights(),
-            //renderNavball(),
-            //renderEarth(),
-            //renderOrb(),
-            //renderTesla(),
+        renderWormhole(),
+            renderTunnel(),
+            renderSonic(),
+            renderStarfield(),
+            renderLights(),
+            renderNavball(),
+            renderEarth(),
+            renderOrb(),
+            renderTesla(),
             updateDistance(),
             updateWarpStatus(),
             checkCollision();//,
-            //renderer.render(scene, camera),
-            //navballRenderer.render(navballScene, navballCamera),
-            //tooltipRenderer.render(scene, camera);
+            renderer.render(scene, camera),
+            navballRenderer.render(navballScene, navballCamera),
+            tooltipRenderer.render(scene, camera);
     // }
 }
 var toleranceRotation = 0.2,
@@ -1499,17 +1499,17 @@ function checkCollision() {
             ((hitDistance = 0.5 < e ? 1 : 0.1),
             (hitRaycaster.far = hitDistance),
             0.02 <= i || 0.02 <= n || 0.02 <= s ? updateRateColor("warning") : i > toleranceRate || n > toleranceRate || s > toleranceRate ? updateRateColor("caution") : updateRateColor("normal"),
-            0 < t.length && (($("#fail-message").innerHTML = "You made contact with the International Space Station."), enviarDone(1,10),console.log("1")),//hideInterface("fail")),
-            40 < e && (($("#fail-message").innerHTML = "You are too far away from the International Space Station."), enviarDone(-1,-3000),console.log("2")),//hideInterface("fail")),
+            0 < t.length && (($("#fail-message").innerHTML = "You made contact with the International Space Station."), enviarDone(1,10),console.log("1"),hideInterface("fail")),
+            40 < e && (($("#fail-message").innerHTML = "You are too far away from the International Space Station."), enviarDone(-1,-3000),console.log("2"),hideInterface("fail")),
             0.2 > e && -150 < camera.position.z)
         )
-            if (o <= toleranceRotation && a <= toleranceRotation && r <= toleranceRotation && i <= toleranceRate && n <= toleranceRate && s <= toleranceRate) enviarDone(1,1000),console.log("0");//hideInterface("success");
+            if (o <= toleranceRotation && a <= toleranceRotation && r <= toleranceRotation && i <= toleranceRate && n <= toleranceRate && s <= toleranceRate) enviarDone(1,1000),console.log("0"),hideInterface("success");
             else {
                 var l = "";
                 (o > toleranceRotation || a > toleranceRotation || r > toleranceRotation) && (l = "ROTATION"),
                     (i > toleranceRate || n > toleranceRate || s > toleranceRate) && ("" != l && (l += ", "), (l += "SPEED")),
                     ($("#fail-message").innerHTML = "The following errors occurred: <span class='red'>" + l + "<span>"),
-                    enviarDone(-1,-10),console.log("3");//hideInterface("fail");
+                    enviarDone(-1,-10),console.log("3"),hideInterface("fail");
             }
     }
 }

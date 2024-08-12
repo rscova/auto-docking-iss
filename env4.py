@@ -31,6 +31,8 @@ class Env:
 
         self.dt = 0.01
 
+        self.init_dist = 0
+
         self.max_state = [0,0,0,0,0,0]
 
         self.derivative_timer = time.time()
@@ -91,47 +93,37 @@ class Env:
     def compute_reward(self):
         reward = 0.0
 
-        # Experimento 6:
+        # Experimento 7:
+        # X reward
+        if abs(self.state_curr[0]) <= 0.1:
+            reward += 1.0
+        elif abs(self.state_curr[0]) - abs(self.state_past[0]) > 0:
+            reward -= 0.2
+        elif abs(self.state_curr[0]) - abs(self.state_past[0]) < 0:
+            reward += 0.2
+        elif abs(self.state_curr[0]) - abs(self.state_past[0]) == 0:
+            reward -= 0.05
+
         # Y reward
-        if abs(self.state_curr[1]) <= 0.2:
+        if abs(self.state_curr[1]) <= 0.15:
             reward += 1.0
         elif abs(self.state_curr[1]) - abs(self.state_past[1]) > 0:
-            reward -= 0.4
+            reward -= 0.2
         elif abs(self.state_curr[1]) - abs(self.state_past[1]) < 0:
-            reward += 0.3
+            reward += 0.2
+        elif abs(self.state_curr[1]) - abs(self.state_past[1]) == 0:
+            reward -= 0.05
 
         # Z reward
-        if abs(self.state_curr[2]) <= 0.2:
+        if abs(self.state_curr[2]) <= 0.15:
             reward += 1.0
         elif abs(self.state_curr[2]) - abs(self.state_past[2]) > 0:
-            reward -= 0.4
+            reward -= 0.2
         elif abs(self.state_curr[2]) - abs(self.state_past[2]) < 0:
-            reward += 0.3
+            reward += 0.2
+        elif abs(self.state_curr[2]) - abs(self.state_past[2]) == 0:
+            reward -= 0.05
 
-
-        # Experimento 5: Va por steps
-        # # X reward
-        # if abs(self.state_curr[0]) - abs(self.state_past[0]) > 0:
-        #     reward -= 0.2
-        # elif abs(self.state_curr[0]) - abs(self.state_past[0]) < 0:
-        #     reward += 0.1
-
-        # # Y reward
-        # if abs(self.state_curr[1]) - abs(self.state_past[1]) > 0:
-        #     reward -= 0.4
-        # elif abs(self.state_curr[1]) - abs(self.state_past[1]) < 0:
-        #     reward += 0.3
-        # elif abs(self.state_curr[1]) - abs(self.state_past[1]) == 0:
-        #     reward += 0.05
-
-        # # Z reward
-        # if abs(self.state_curr[2]) - abs(self.state_past[2]) > 0:
-        #     reward -= 0.4
-        # elif abs(self.state_curr[2]) - abs(self.state_past[2]) < 0:
-        #     reward += 0.3
-        # elif abs(self.state_curr[2]) - abs(self.state_past[2]) == 0:
-        #     reward += 0.05
-    
         return reward
 
     def wait_until_stopped(self,sleep_time = 0.1):
@@ -198,28 +190,28 @@ class Env:
                 self.actions_counts[0] = -2
         elif action == 2:
             self.actions_counts[1] += 1
-            if self.actions_counts[1] <= 2:
+            if self.actions_counts[1] <= 1:
                 self.new_action = True
             else:
-                self.actions_counts[1] = 2
+                self.actions_counts[1] = 1
         elif action == 3:
             self.actions_counts[1] -= 1
-            if self.actions_counts[1] >= -2:
+            if self.actions_counts[1] >= -1:
                 self.new_action = True
             else:
-                self.actions_counts[1] = -2
+                self.actions_counts[1] = -1
         elif action == 4:
             self.actions_counts[2] += 1
-            if self.actions_counts[2] <= 2:
+            if self.actions_counts[2] <= 1:
                 self.new_action = True
             else:
-                self.actions_counts[2] = 2
+                self.actions_counts[2] = 1
         elif action == 5:
             self.actions_counts[2] -= 1
-            if self.actions_counts[2] >= -2:
+            if self.actions_counts[2] >= -1:
                 self.new_action = True
             else:
-                self.actions_counts[2] = -2
+                self.actions_counts[2] = -1
 
         state = self.get_state()
         reward = self.compute_reward()
