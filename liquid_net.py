@@ -131,6 +131,18 @@ class LiquidNet(nn.Module):
         self._fix_gleak = None
         self._fix_vleak = None
 
+        self.sensory_mu = torch.nn.Parameter()
+        self.sensory_sigma = torch.nn.Parameter()
+        self.sensory_W = torch.nn.Parameter()
+        self.sensory_erev = torch.nn.Parameter()
+        self.mu = torch.nn.Parameter()
+        self.sigma = torch.nn.Parameter()
+        self.W = torch.nn.Parameter()
+        self.erev = torch.nn.Parameter()
+        self.vleak = torch.nn.Parameter()
+        self.gleak = torch.nn.Parameter()
+        self.cm_t = torch.nn.Parameter()
+
     @property
     def state_size(self):
         """State size of the cell."""
