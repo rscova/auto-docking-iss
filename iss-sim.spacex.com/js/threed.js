@@ -534,19 +534,17 @@ socket.on('connect', function() {
     console.log('Conectado al servidor');
 });
 
-function enviarMensaje(posicionX, posicionY, posicionZ){ //#, orientacionRoll, orientacionPitch, orientacionYaw,dt) {
+function enviarMensaje(posicionX, posicionY, posicionZ, orientacionRoll, orientacionPitch, orientacionYaw,dt) {
     // is_stopped = 1;
     var datos = [
         posicionX,
         posicionY,
         posicionZ,
-        // orientacionRoll,
-        // orientacionPitch,
-        // orientacionYaw,
-        // dt
+        orientacionRoll,
+        orientacionPitch,
+        orientacionYaw,
     ];
     socket.emit('error_data', datos);
-    // stop_time = Date.now();
 }
 
 function enviarDone(done,reward) {
@@ -569,12 +567,7 @@ socket.on('datos_hacia_cliente', function(data) {
         done_received = 1;
     }
     else {
-        // 
-        // if (data[7] == 1) {
-        //     is_stopped = 0;
-        //     continue_time = Date.now();
-        // }
-        if (data[6]==1) {
+        if (data[12]==1) {
             console.log('resetPosition');
             resetPosition();
         }
@@ -596,6 +589,25 @@ socket.on('datos_hacia_cliente', function(data) {
         if (data[5]==1) {
             translateDown()
         }
+        if (data[6]==1) {
+            rollLeft()
+        }
+        if (data[7]==1) {
+            rollRight()
+        }
+        if (data[8]==1) {
+            pitchUp()
+        }
+        if (data[9]==1) {
+            pitchDown()
+        }
+        if (data[10]==1) {
+            yawLeft()
+        }
+        if (data[11]==1) {
+            yawRight()
+        }
+
     }
 });
 

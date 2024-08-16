@@ -15,7 +15,7 @@ class Env:
     def __init__(self,dt=1.0):
         self.dt = dt
         self.dv = 0.0597
-        self.max_state = [30.0,3.0,3.0,3.0,3.0,3.0]
+        self.max_state = [30.0,10.0,10.0,10.0,10.0,10.0]
 
         self.done = 0
         self.state = [0.0] * 12
@@ -43,27 +43,27 @@ class Env:
         #     reward_x = 0.5 * (-self.state[0] + 1)
 
         if abs(self.state[1]) > 0.2:
-            reward_y = -(abs(self.state[1]) - 0.2) / 2.8
+            reward_y = -(abs(self.state[1]) - 0.2) / 9.8
         else:
             reward_y = -(abs(self.state[1]) - 0.2) / 0.2
 
         if abs(self.state[2]) > 0.2:
-            reward_z = -(abs(self.state[2]) - 0.2) / 2.8
+            reward_z = -(abs(self.state[2]) - 0.2) / 9.8
         else:
             reward_z = -(abs(self.state[2]) - 0.2) / 0.2
     
         if abs(self.state[6]) > 0.2:
-            reward_roll = -(abs(self.state[6]) - 0.2) / 2.8
+            reward_roll = -(abs(self.state[6]) - 0.2) / 9.8
         else:
             reward_roll = -(abs(self.state[6]) - 0.2) / 0.2
 
         if abs(self.state[7]) > 0.2:
-            reward_pitch = -(abs(self.state[7]) - 0.2) / 2.8
+            reward_pitch = -(abs(self.state[7]) - 0.2) / 9.8
         else:
             reward_pitch = -(abs(self.state[7]) - 0.2) / 0.2
 
         if abs(self.state[8]) > 0.2:
-            reward_yaw = -(abs(self.state[8]) - 0.2) / 2.8
+            reward_yaw = -(abs(self.state[8]) - 0.2) / 9.8
         else:
             reward_yaw = -(abs(self.state[8]) - 0.2) / 0.2
         
@@ -84,12 +84,12 @@ class Env:
         #               0.0,0.0,0.0]
         
         self.state = [random.uniform(15, 20),
-                      random.uniform(-2, 2),
-                      random.uniform(-2, 2),
+                      random.uniform(-6, 6),
+                      random.uniform(-6, 6),
                       0.0,0.0,0.0,
-                      random.uniform(-2, 2),
-                      random.uniform(-2, 2),
-                      random.uniform(-2, 2),
+                      random.uniform(-6, 6),
+                      random.uniform(-6, 6),
+                      random.uniform(-6, 6),
                       0.0,0.0,0.0]
 
         return self.state
@@ -102,17 +102,17 @@ class Env:
             abs(self.state[6]) >= self.max_state[3] or abs(self.state[7]) >= self.max_state[4] or abs(self.state[8]) >= self.max_state[5]
             ):
             self.done = 1
-            self.done_reward = -200.0
+            self.done_reward = -4000.0
     
-        if self.state[0] < 0.0:
-            if (abs(self.state[1]) < 0.2 and abs(self.state[2]) < 0.2 and 
-                abs(self.state[6]) < 0.2 and abs(self.state[7]) < 0.2 and abs(self.state[8]) < 0.2
-                ):
-                self.done = 1
-                self.done_reward = 200.0
-            else:
-                self.done = 1
-                self.done_reward = 0.0
+        #if self.state[0] < 0.0:
+        if (abs(self.state[1]) < 0.2 and abs(self.state[2]) < 0.2 and 
+            abs(self.state[6]) < 0.2 and abs(self.state[7]) < 0.2 and abs(self.state[8]) < 0.2
+            ):
+            self.done = 1
+            self.done_reward = 4000.0
+            #else:
+            #    self.done = 1
+            #    self.done_reward = 0.0
         
     def rotation_matrix(self,roll, pitch, yaw):
         R_yaw = np.array([

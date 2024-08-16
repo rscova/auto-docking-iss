@@ -12,10 +12,15 @@ import numpy as np
 
 
 class Env:
-    def __init__(self,dt=1.0):
+    def __init__(self,max_state,objective_state,range_state,stop_state,reward_terminal=[0.0,0.0],dt=1.0,dv_linear=0.0597,dv_angular=0.0597):
         self.dt = dt
-        self.dv = 0.0597
-        self.max_state = [30.0,3.0,3.0,3.0,3.0,3.0]
+        self.dv_linear = dv_linear
+        self.dv_angular = dv_angular
+        self.max_state = max_state
+        self.objective_state = objective_state
+        self.range_state = range_state
+        self.reward_terminal = reward_terminal
+        self.stop_state = stop_state
 
         self.done = 0
         self.state = [0.0] * 12
@@ -25,6 +30,8 @@ class Env:
         self.new_action = False
 
         self.done_reward = 0.0
+
+        self.deg_to_rad = math.pi / 180
 
     def run(self):
         pass
@@ -37,35 +44,35 @@ class Env:
         reward_pitch = 0.0
         reward_yaw = 0.0
 
-        # if self.state[0] > 1.0:
-        #     reward_x = max(-(self.state[0] - 1) / 29, -1)  # 0 + (-1-0)*(x-1)/(30-1)
+        # if abs(self.state[0]) > 1.0:
+        #     reward_x = (-self.state[0] + 1) / 29
         # else:
-        #     reward_x =  min(-(self.state[0] - 1), 1)# 0 + (1.0-0)*(x-1)/(0-1)
+        #     reward_x = 0.5 * (-self.state[0] + 1)
 
-        if abs(self.state[1]) > 0.2:
-            reward_y = max(-(abs(self.state[1]) - 0.2) / 2.8, -1)# 0 + (-1-0)*(x-0.2)/(3-0.2)
+        if abs(self.state[1]) > self.objective_state[1]:
+            reward_y =      -(abs(self.state[1]) - self.objective_state[1]) / (self.max_state[1]-self.objective_state[1])
         else:
-            reward_y = min(-(abs(self.state[1]) - 0.2) / 0.2, 1) # 0 + (1-0)*(x-0.2)/(0-0.2)
+            reward_y =      -(abs(self.state[1]) - self.objective_state[1]) / self.objective_state[1]
 
-        if abs(self.state[2]) > 0.2:
-            reward_z = max(-(abs(self.state[2]) - 0.2) / 2.8, -1) # 0 + (-1-0)*(x-0.2)/(3-0.2)
+        if abs(self.state[2]) > self.objective_state[2]:
+            reward_z =      -(abs(self.state[2]) - self.objective_state[2]) / (self.max_state[2]-self.objective_state[2])
         else:
-            reward_z = min(-(abs(self.state[2]) - 0.2) / 0.2, 1) # 0 + (1-0)*(x-0.2)/(0-0.2)
+            reward_z =      -(abs(self.state[2]) - self.objective_state[2]) / self.objective_state[2]
     
-        if abs(self.state[6]) > 0.2:
-            reward_roll = max(-(abs(self.state[6]) - 0.2) / 2.8, -1) # 0 + (-1-0)*(x-0.2)/(3-0.2)
+        if abs(self.state[6]) > self.objective_state[3]:
+            reward_roll =   -(abs(self.state[6]) - self.objective_state[3]) / (self.max_state[3]-self.objective_state[3])
         else:
-            reward_roll = min(-(abs(self.state[6]) - 0.2) / 0.2, 1) # 0 + (1-0)*(x-0.2)/(0-0.2)
+            reward_roll =   -(abs(self.state[6]) - self.objective_state[3]) / self.objective_state[3]
 
-        if abs(self.state[7]) > 0.2:
-            reward_pitch = max(-(abs(self.state[7]) - 0.2) / 2.8, -1) # 0 + (-1-0)*(x-0.2)/(3-0.2)
+        if abs(self.state[7]) > self.objective_state[4]:
+            reward_pitch =  -(abs(self.state[7]) - self.objective_state[4]) / (self.max_state[4]-self.objective_state[4])
         else:
-            reward_pitch = min(-(abs(self.state[7]) - 0.2) / 0.2, 1) # 0 + (1-0)*(x-0.2)/(0-0.2)
+            reward_pitch =  -(abs(self.state[7]) - self.objective_state[4]) / self.objective_state[4]
 
-        if abs(self.state[8]) > 0.2:
-            reward_yaw = max(-(abs(self.state[8]) - 0.2) / 2.8, -1) # 0 + (-1-0)*(x-0.2)/(3-0.2)
+        if abs(self.state[8]) > self.objective_state[5]:
+            reward_yaw =    -(abs(self.state[8]) - self.objective_state[5]) / (self.max_state[5]-self.objective_state[5])
         else:
-            reward_yaw = min(-(abs(self.state[8]) - 0.2) / 0.2, 1) # 0 + (1-0)*(x-0.2)/(0-0.2)
+            reward_yaw =    -(abs(self.state[8]) - self.objective_state[5]) / self.objective_state[5]
         
         return reward_x + reward_y + reward_z + reward_roll + reward_pitch + reward_yaw
 
@@ -77,19 +84,14 @@ class Env:
         self.actions_counts = [0] * 6
         self.new_action = False
         self.done_reward = 0.0
-
-        # self.state = [15.0,0.0,0.0,
-        #               0.0,0.0,0.0,
-        #               0.0,0.0,0.0,
-        #               0.0,0.0,0.0]
         
-        self.state = [random.uniform(15, 20),
-                      random.uniform(-2, 2),
-                      random.uniform(-2, 2),
+        self.state = [random.uniform(self.range_state[0][0], self.range_state[0][1]),
+                      random.uniform(-self.range_state[1], self.range_state[1]),
+                      random.uniform(-self.range_state[2], self.range_state[2]),
                       0.0,0.0,0.0,
-                      random.uniform(-2, 2),
-                      random.uniform(-2, 2),
-                      random.uniform(-2, 2),
+                      random.uniform(-self.range_state[3], self.range_state[3]),
+                      random.uniform(-self.range_state[4], self.range_state[4]),
+                      random.uniform(-self.range_state[5], self.range_state[5]),
                       0.0,0.0,0.0]
 
         return self.state
@@ -102,17 +104,18 @@ class Env:
             abs(self.state[6]) >= self.max_state[3] or abs(self.state[7]) >= self.max_state[4] or abs(self.state[8]) >= self.max_state[5]
             ):
             self.done = 1
-            self.done_reward = -200.0
+            self.done_reward = self.reward_terminal[0]
     
-        # if self.state[0] < 0.0:
-        #     if (abs(self.state[1]) < 0.2 and abs(self.state[2]) < 0.2 and 
-        #         abs(self.state[6]) < 0.2 and abs(self.state[7]) < 0.2 and abs(self.state[8]) < 0.2
-        #         ):
-        #         self.done = 1
-        #         self.done_reward = 200.0
-        #     else:
-        #         self.done = 1
-        #         self.done_reward = 0.0
+        #if self.state[0] < 0.0:
+        if (abs(self.state[1]) < self.objective_state[1] and abs(self.state[2]) < self.objective_state[2] and 
+            abs(self.state[6]) < self.objective_state[3] and abs(self.state[7]) < self.objective_state[4] and 
+            abs(self.state[8]) < self.objective_state[5]
+            ):
+            self.done = 1
+            self.done_reward = self.reward_terminal[1]
+            #else:
+            #    self.done = 1
+            #    self.done_reward = 0.0
         
     def rotation_matrix(self,roll, pitch, yaw):
         R_yaw = np.array([
@@ -138,7 +141,7 @@ class Env:
 
     # Función para actualizar la posición y la orientación
     def update_position_orientation(self,position, orientation, linear_velocity, angular_velocity):
-        roll, pitch, yaw = orientation * math.pi / 180
+        roll, pitch, yaw = orientation *  self.deg_to_rad
         R = self.rotation_matrix(roll, pitch, yaw)
         
         # Actualizar posición
@@ -148,9 +151,6 @@ class Env:
         # Actualizar orientación
         delta_orientation = angular_velocity * self.dt
         orientation += delta_orientation
-
-        # if position[0] < 0.0:
-        #     position[0] = 0.0
         
         return position, orientation
 
@@ -175,30 +175,30 @@ class Env:
         if self.new_action:
             #Linear
             if action == 0:
-                self.velocity_next[0] += 0.0#self.dv
+                self.velocity_next[0] += self.dv_linear
             elif action == 1:
-                self.velocity_next[0] -= 0.0#self.dv
+                self.velocity_next[0] -= self.dv_linear
             elif action == 2:
-                self.velocity_next[1] -= self.dv
+                self.velocity_next[1] -= self.dv_linear
             elif action == 3:
-                self.velocity_next[1] += self.dv
+                self.velocity_next[1] += self.dv_linear
             elif action == 4:
-                self.velocity_next[2] += self.dv
+                self.velocity_next[2] += self.dv_linear
             elif action == 5:
-                self.velocity_next[2] -= self.dv
+                self.velocity_next[2] -= self.dv_linear
             #Angular
             elif action == 6:
-                self.velocity_next[3] += self.dv
+                self.velocity_next[3] += self.dv_angular
             elif action == 7:
-                self.velocity_next[3] -= self.dv
+                self.velocity_next[3] -= self.dv_angular
             elif action == 8:
-                self.velocity_next[4] += self.dv
+                self.velocity_next[4] += self.dv_angular
             elif action == 9:
-                self.velocity_next[4] -= self.dv
+                self.velocity_next[4] -= self.dv_angular
             elif action == 10:
-                self.velocity_next[5] += self.dv
+                self.velocity_next[5] += self.dv_angular
             elif action == 11:
-                self.velocity_next[5] -= self.dv
+                self.velocity_next[5] -= self.dv_angular
     
     def saturate_actions(self,action):
         self.new_action = False
