@@ -12,7 +12,8 @@ import numpy as np
 
 
 class Env:
-    def __init__(self,max_state,objective_state,range_state,reward_terminal=[0.0,0.0],dt=1.0,dv_linear=0.0597,dv_angular=0.0597):
+    def __init__(self,max_state,objective_state,range_state,reward_terminal=[0.0,0.0],
+                 dt=1.0,dv_linear=0.0597,dv_angular=0.0597,saturate_x = False, compute_x_reward = False):
         self.dt = dt
         self.dv_linear = dv_linear
         self.dv_angular = dv_angular
@@ -20,6 +21,9 @@ class Env:
         self.objective_state = objective_state
         self.range_state = range_state
         self.reward_terminal = reward_terminal
+
+        self.saturate_x = saturate_x
+        self.compute_x_reward = compute_x_reward
 
         self.done = 0
         self.state = [0.0] * 12
@@ -43,10 +47,11 @@ class Env:
         reward_pitch = 0.0
         reward_yaw = 0.0
 
-        # if abs(self.state[0]) > 1.0:
-        #     reward_x = (-self.state[0] + 1) / 29
-        # else:
-        #     reward_x = 0.5 * (-self.state[0] + 1)
+        if self.compute_x_reward:
+            if abs(self.state[0]) > 1.0:
+                reward_x =      max(-(abs(self.state[0]) - self.objective_state[0]) / (self.max_state[0]-self.objective_state[0]), -1)
+            else:
+                reward_x =      min(-(abs(self.state[0]) - self.objective_state[0]) / self.objective_state[0], 1)
 
         if abs(self.state[1]) > self.objective_state[1]:
             reward_y =      max(-(abs(self.state[1]) - self.objective_state[1]) / (self.max_state[1]-self.objective_state[1]), -1)
@@ -104,17 +109,21 @@ class Env:
             ):
             self.done = -1
             self.done_reward = self.reward_terminal[0]
-    
-        #if self.state[0] < 0.0:
-        if (abs(self.state[1]) < self.objective_state[1] and abs(self.state[2]) < self.objective_state[2] and 
-            abs(self.state[6]) < self.objective_state[3] and abs(self.state[7]) < self.objective_state[4] and 
-            abs(self.state[8]) < self.objective_state[5]
-            ):
-            self.done = 1
-            self.done_reward = self.reward_terminal[1]
-            #else:
-            #    self.done = 1
-            #    self.done_reward = 0.0
+
+        if self.compute_x_reward:
+            if  (    self.state[0]  < self.objective_state[0] and abs(self.state[1]) < self.objective_state[1] and 
+                 abs(self.state[2]) < self.objective_state[2] and abs(self.state[6]) < self.objective_state[3] and 
+                 abs(self.state[7]) < self.objective_state[4] and abs(self.state[8]) < self.objective_state[5]
+                ):
+                self.done = 1
+                self.done_reward = self.reward_terminal[1]
+        else:
+            if  (abs(self.state[1]) < self.objective_state[1] and abs(self.state[2]) < self.objective_state[2] and 
+                 abs(self.state[6]) < self.objective_state[3] and abs(self.state[7]) < self.objective_state[4] and 
+                 abs(self.state[8]) < self.objective_state[5]
+                ):
+                self.done = 1
+                self.done_reward = self.reward_terminal[1]
         
     def rotation_matrix(self,roll, pitch, yaw):
         R_yaw = np.array([
@@ -169,6 +178,9 @@ class Env:
 
         self.state[:3] = position.tolist()
         self.state[6:9] = orientation.tolist()
+
+        if self.saturate_x and self.state[0] < 0.0:
+            self.state[0] = 0.0
 
         #Update next velocities with commands
         if self.new_action:
