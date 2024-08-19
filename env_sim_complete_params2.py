@@ -13,7 +13,8 @@ import numpy as np
 
 class Env:
     def __init__(self,max_state,objective_state,range_state,reward_terminal=[0.0,0.0],
-                 dt=1.0,dv_linear=0.0597,dv_angular=0.0597,saturate_x = False, compute_x_reward = False):
+                 dt=1.0,dv_linear=0.0597,dv_angular=0.0597,saturate_x = False, compute_x_reward = False,
+                 compute_linear_reward = True, compute_angular_reward = True):
         self.dt = dt
         self.dv_linear = dv_linear
         self.dv_angular = dv_angular
@@ -24,6 +25,8 @@ class Env:
 
         self.saturate_x = saturate_x
         self.compute_x_reward = compute_x_reward
+        self.compute_linear_reward = compute_linear_reward
+        self.compute_angular_reward = compute_angular_reward
 
         self.done = 0
         self.state = [0.0] * 12
@@ -48,35 +51,37 @@ class Env:
         reward_yaw = 0.0
 
         if self.compute_x_reward:
-            if abs(self.state[0]) > 1.0:
+            if abs(self.state[0]) > self.objective_state[0]:
                 reward_x =      max(-(abs(self.state[0]) - self.objective_state[0]) / (self.max_state[0]-self.objective_state[0]), -1)
             else:
                 reward_x =      min(-(abs(self.state[0]) - self.objective_state[0]) / self.objective_state[0], 1)
 
-        if abs(self.state[1]) > self.objective_state[1]:
-            reward_y =      max(-(abs(self.state[1]) - self.objective_state[1]) / (self.max_state[1]-self.objective_state[1]), -1)
-        else:
-            reward_y =      min(-(abs(self.state[1]) - self.objective_state[1]) / self.objective_state[1], 1)
+        if self.compute_linear_reward:
+            if abs(self.state[1]) > self.objective_state[1]:
+                reward_y =      max(-(abs(self.state[1]) - self.objective_state[1]) / (self.max_state[1]-self.objective_state[1]), -1)
+            else:
+                reward_y =      min(-(abs(self.state[1]) - self.objective_state[1]) / self.objective_state[1], 1)
 
-        if abs(self.state[2]) > self.objective_state[2]:
-            reward_z =      max(-(abs(self.state[2]) - self.objective_state[2]) / (self.max_state[2]-self.objective_state[2]), -1)
-        else:
-            reward_z =      min(-(abs(self.state[2]) - self.objective_state[2]) / self.objective_state[2], 1)
+            if abs(self.state[2]) > self.objective_state[2]:
+                reward_z =      max(-(abs(self.state[2]) - self.objective_state[2]) / (self.max_state[2]-self.objective_state[2]), -1)
+            else:
+                reward_z =      min(-(abs(self.state[2]) - self.objective_state[2]) / self.objective_state[2], 1)
     
-        if abs(self.state[6]) > self.objective_state[3]:
-            reward_roll =   max(-(abs(self.state[6]) - self.objective_state[3]) / (self.max_state[3]-self.objective_state[3]), -1)
-        else:
-            reward_roll =   min(-(abs(self.state[6]) - self.objective_state[3]) / self.objective_state[3], 1)
+        if self.compute_angular_reward:
+            if abs(self.state[6]) > self.objective_state[3]:
+                reward_roll =   max(-(abs(self.state[6]) - self.objective_state[3]) / (self.max_state[3]-self.objective_state[3]), -1)
+            else:
+                reward_roll =   min(-(abs(self.state[6]) - self.objective_state[3]) / self.objective_state[3], 1)
 
-        if abs(self.state[7]) > self.objective_state[4]:
-            reward_pitch =  max(-(abs(self.state[7]) - self.objective_state[4]) / (self.max_state[4]-self.objective_state[4]), -1)
-        else:
-            reward_pitch =  min(-(abs(self.state[7]) - self.objective_state[4]) / self.objective_state[4], 1)
+            if abs(self.state[7]) > self.objective_state[4]:
+                reward_pitch =  max(-(abs(self.state[7]) - self.objective_state[4]) / (self.max_state[4]-self.objective_state[4]), -1)
+            else:
+                reward_pitch =  min(-(abs(self.state[7]) - self.objective_state[4]) / self.objective_state[4], 1)
 
-        if abs(self.state[8]) > self.objective_state[5]:
-            reward_yaw =    max(-(abs(self.state[8]) - self.objective_state[5]) / (self.max_state[5]-self.objective_state[5]), -1)
-        else:
-            reward_yaw =    min(-(abs(self.state[8]) - self.objective_state[5]) / self.objective_state[5], 1)
+            if abs(self.state[8]) > self.objective_state[5]:
+                reward_yaw =    max(-(abs(self.state[8]) - self.objective_state[5]) / (self.max_state[5]-self.objective_state[5]), -1)
+            else:
+                reward_yaw =    min(-(abs(self.state[8]) - self.objective_state[5]) / self.objective_state[5], 1)
         
         return reward_x + reward_y + reward_z + reward_roll + reward_pitch + reward_yaw
 
@@ -104,14 +109,14 @@ class Env:
         self.done = 0
         self.done_reward = 0
 
-        if (self.state[0] >= self.max_state[0] or abs(self.state[1]) >= self.max_state[1] or abs(self.state[2]) >= self.max_state[2] or
+        if (abs(self.state[0]) >= self.max_state[0] or abs(self.state[1]) >= self.max_state[1] or abs(self.state[2]) >= self.max_state[2] or
             abs(self.state[6]) >= self.max_state[3] or abs(self.state[7]) >= self.max_state[4] or abs(self.state[8]) >= self.max_state[5]
             ):
             self.done = -1
             self.done_reward = self.reward_terminal[0]
 
         if self.compute_x_reward:
-            if  (    self.state[0]  < self.objective_state[0] and abs(self.state[1]) < self.objective_state[1] and 
+            if  (abs(self.state[0]) < self.objective_state[0] and abs(self.state[1]) < self.objective_state[1] and 
                  abs(self.state[2]) < self.objective_state[2] and abs(self.state[6]) < self.objective_state[3] and 
                  abs(self.state[7]) < self.objective_state[4] and abs(self.state[8]) < self.objective_state[5]
                 ):
